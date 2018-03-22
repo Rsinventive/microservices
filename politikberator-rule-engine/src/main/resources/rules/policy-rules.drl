@@ -1,0 +1,103 @@
+package rules;
+
+import com.threaddynamics.politlberator.rule.engine.dto.PolicyPremiumDetail;
+import com.incedo.politikberator.common.constant.PolicyPaymentFrequency;
+
+import static com.threaddynamics.politlberator.rule.engine.util.AgeCalculator.calculateAge;
+
+rule "BASE_RULE"
+    when
+       $policyPremiumRequest: PolicyPremiumDetail(
+                                                     $dob: dateOfBirth,
+                                                     $smoker: smoker
+                                                  )
+       $age: Integer() from calculateAge($dob)                                           
+    then
+       System.out.println("*******FIRING BASE RULE*********");
+       $policyPremiumRequest.setEligibleForPolicy(false);
+end
+
+rule "ageBelow18" extends "BASE_RULE"
+	when
+	   eval($age < 18)
+	then
+	  System.out.println("*******ageBelow18 RULE*********");
+end
+
+rule "ageBelow18IsSmoker" extends "ageBelow18"
+	when
+	   eval($smoker == true)
+	then
+	  System.out.println("*******ageBelow18IsSmoker RULE*********");
+end
+
+rule "ageBetween18And40" extends "BASE_RULE"
+	when
+		eval($age >= 18 && $age < 40)
+	then
+	    System.out.println("*******ageBetween18And40 RULE*********");
+	    $policyPremiumRequest.setPolicyNumber("LICCORP1234");
+	    $policyPremiumRequest.setPolicyName("Long Term Saver");
+	    $policyPremiumRequest.setDescription("LIC Corporate - GOLD Customer BEEMA");
+		$policyPremiumRequest.setEligibleForPolicy(true);
+		$policyPremiumRequest.setPremium(25000.00);
+		$policyPremiumRequest.setAnnualPremium(25000.00);
+		$policyPremiumRequest.setPolicyPaymentFrequency(PolicyPaymentFrequency.YEARLY);
+end
+
+rule "ageBetween18And40IsSmoker" extends "ageBetween18And40"
+	when
+		eval($smoker == true)
+	then
+	    System.out.println("*******ageBetween18And40IsSmoker RULE*********");
+		$policyPremiumRequest.setPremium(28000.00);
+		$policyPremiumRequest.setAnnualPremium(28000.00);
+		$policyPremiumRequest.setEligibleForPolicy(true);
+		$policyPremiumRequest.setPolicyPaymentFrequency(PolicyPaymentFrequency.YEARLY);
+end
+
+rule "ageBetween40And60" extends "BASE_RULE"
+	when
+		eval($age >= 40 && $age < 60)
+	then
+	    System.out.println("*******ageBetween40And80 RULE*********");
+		$policyPremiumRequest.setPolicyName("Early Maturity");
+		$policyPremiumRequest.setPolicyNumber("LICCORP4567");
+	    $policyPremiumRequest.setDescription("LIC Corporate - Early Maturity BEEMA");
+		$policyPremiumRequest.setEligibleForPolicy(true);
+		$policyPremiumRequest.setPremium(20000.00);
+		$policyPremiumRequest.setAnnualPremium(20000.00);
+		$policyPremiumRequest.setPolicyPaymentFrequency(PolicyPaymentFrequency.YEARLY);
+end
+
+rule "ageBetween40And60IsSmoker" extends "ageBetween40And60"
+	when
+		eval($smoker == true)
+	then
+	    System.out.println("*******ageBetween40And80 RULE*********");
+		$policyPremiumRequest.setPremium(23000.00);
+		$policyPremiumRequest.setAnnualPremium(23000.00);
+		$policyPremiumRequest.setPolicyPaymentFrequency(PolicyPaymentFrequency.YEARLY);
+		$policyPremiumRequest.setEligibleForPolicy(true);
+end
+
+rule "ageAbove60" extends "BASE_RULE"
+	when
+		eval($age >= 60)
+	then
+	    System.out.println("*******ageAbove60 RULE*********");
+		$policyPremiumRequest.setPolicyName("Customized Policy");
+		$policyPremiumRequest.setEligibleForPolicy(true);
+	    $policyPremiumRequest.setDescription("LIC Corporate - Customized Policy");
+		$policyPremiumRequest.setMessage("Please contact helpdesk or call on 1800-222-222 for customized plan details");
+end
+
+rule "ageAbove60IsSmoker" extends "ageAbove60"
+	when
+		eval($smoker == true)
+	then
+	    System.out.println("*******ageAbove60IsSmoker RULE*********");
+		$policyPremiumRequest.setEligibleForPolicy(false);
+		$policyPremiumRequest.setPolicyName(null);
+		$policyPremiumRequest.setMessage(null);
+end
